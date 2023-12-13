@@ -1,0 +1,63 @@
+function sendEmailAlerts() {
+  Logger.log("Script started");
+  var sheetName = "P.O";
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  var dataRange = sheet.getDataRange();
+  var values = dataRange.getValues();
+  var colors = dataRange.getBackgrounds(); // Get the background colors
+
+  // Initialize variables for table headers
+  var tableHeaders = "<table style='border-collapse: collapse; width: 100%;'><tr><th style='border: 1px solid black;'>Product name</th><th style='border: 1px solid black;'>Pending quantity</th><th style='border: 1px solid black;'>Shipment Date</th></tr>";
+  var tableRows = ""; // Initialize variable to store table rows
+
+  for (var i = 0; i < values.length; i++) {
+    var row = values[i];
+
+    // Check if the background color in column A is red
+    if (colors[i][0] == "#ff0000" || colors[i][0].toLowerCase() == "red") {
+      var productName = row[0];
+      var pendingQuantity = row[2]; // Assuming pending quantity is in column C
+      var shipmentDate = new Date(row[4]); // Assuming shipment date is in column E
+
+      // Format the date to display only the date part
+      var formattedDate = Utilities.formatDate(shipmentDate, "GMT", "yyyy-MM-dd");
+
+      // Add the data to the table rows
+      tableRows += "<tr><td style='border: 1px solid black;'>" + productName + "</td><td style='border: 1px solid black;'>" + pendingQuantity + "</td><td style='border: 1px solid black;'>" + formattedDate + "</td></tr>";
+    }
+  }
+
+  // Check if any red-colored cells were found
+  if (tableRows !== "") {
+    var primaryRecipients = ["exampleemail.com"]; // Replace with your primary emails- ["1example@gmail.com", "2example@gmail.com"] addresses
+    var ccRecipients = [""]; // Replace with your CC email addresses like that- ["1example@email", "2example@email"]
+    var bccRecipients = [""]; // Replace with your BCC email addresses- ["3example@email"]
+
+    var subject = "Alert-Shipment_Pending";
+
+    // Construct the email body with the specified text and the formatted table
+    var body = "Please check the mentioned list below, FYR:<br><br>" + tableHeaders + tableRows + "</table>";
+
+    try {
+      // Send email using GmailApp with correct parameters
+      GmailApp.sendEmail(
+        primaryRecipients.join(", "),
+        subject,
+        "",
+        {
+          cc: ccRecipients.join(", "),
+          bcc: bccRecipients.join(", "),
+          htmlBody: body
+        }
+      );
+
+      Logger.log("Email sent successfully to " + primaryRecipients.join(", "));
+    } catch (error) {
+      Logger.log("Error sending email to " + primaryRecipients.join(", ") + ": " + error.message);
+    }
+  } else {
+    Logger.log("No red-colored cells found");
+  }
+
+  Logger.log("Script completed");
+}
