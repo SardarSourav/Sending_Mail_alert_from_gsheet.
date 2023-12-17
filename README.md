@@ -1,5 +1,3 @@
-Certainly! Here's an improvised and bulleted summary:
-
 **Project Overview:**
 
 - **Objective:** Send emails based on Google Sheet data using conditional formatting.
